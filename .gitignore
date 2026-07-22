@@ -1,0 +1,17 @@
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/cablecast.jks
+*.iml
+.idea/
+
+# PC
+pc/node_modules/
+pc/dist/
+pc/out/
+
+# OS
+.DS_Store
+Thumbs.db

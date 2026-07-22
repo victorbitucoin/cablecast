@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CableCast" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF05080B</item>
+        <item name="android:navigationBarColor">#FF0C0F12</item>
+        <item name="android:windowBackground">#FF0C0F12</item>
+    </style>
+</resources>

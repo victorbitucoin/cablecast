@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src ws: wss:;">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0f12; --panel:#12171c; --inset:#0c1014; --inset2:#0a0e12; --card:#151b21;
+  --b1:#232c33; --b2:#2a343c; --b3:#1c242b;
+  --tp:#e8f3ee; --tp2:#f2f6f4; --ts:#8b9a93; --tm:#5a6a63; --tm2:#4a5952; --lbl:#6b7a74;
+  --green:#39e58c; --tint:rgba(57,229,140,.12); --on:#08110c;
+  --dt:#e08a82; --db:#241416; --dbd:#52302e; --dbd2:#a1443c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tp);
+  font-family:'Space Grotesk',sans-serif;user-select:none;overflow:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+@keyframes ccPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.pulse{animation:ccPulse 1.4s infinite}
+
+/* title bar */
+#bar{display:flex;align-items:center;justify-content:space-between;height:38px;
+  padding:0 0 0 14px;background:#0e1317;border-bottom:1px solid var(--b3);
+  -webkit-app-region:drag}
+#bar .left{display:flex;align-items:center;gap:8px}
+#logo{width:16px;height:16px;border-radius:4px;
+  background:linear-gradient(135deg,#39e58c,#1fae66);display:grid;place-items:center;
+  font-size:9px;font-weight:700;color:var(--on)}
+#bar .title{font-size:12px;color:#aab8b1}
+#bar .btns{display:flex;-webkit-app-region:no-drag}
+#bar .wb{width:46px;height:38px;display:grid;place-items:center;color:#8b9a93;font-size:12px;cursor:default}
+#bar .wb:hover{background:#1a2127}
+#bar .wb.close:hover{background:#c42b1c;color:#fff}
+
+/* body grid */
+#body{display:grid;grid-template-columns:300px 1fr;height:calc(100% - 38px)}
+#left{border-right:1px solid var(--b3);padding:20px;display:flex;flex-direction:column;gap:18px;overflow:auto}
+#right{padding:20px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+
+.label{font-size:11px;color:var(--lbl);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.sub{font-size:12px;color:var(--ts)}
+
+/* mode toggle */
+.modes{display:flex;gap:6px}
+.mode{flex:1;padding:12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;
+  background:var(--inset);border:1px solid var(--b2);color:var(--ts);text-align:center;transition:.12s}
+.mode.on{background:var(--tint);border:1px solid var(--green);color:var(--green)}
+
+/* ip input */
+#ip{width:100%;background:var(--inset);border:1px solid var(--b2);border-radius:6px;
+  padding:10px 12px;color:var(--tp);font-size:14px;outline:none}
+#ip:focus{border-color:var(--green)}
+.helper{font-size:11px;color:var(--tm)}
+.err{font-size:11px;color:var(--dt);display:none}
+
+/* device rows */
+#devices{display:flex;flex-direction:column;gap:8px}
+.dev{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
+  background:var(--card);border:1px solid var(--b1);border-radius:8px;cursor:pointer}
+.dev:hover{border-color:var(--green)}
+.dev .name{font-size:13px;color:var(--tp);font-weight:500}
+.dev .ip{font-size:11px;color:var(--tm);margin-top:2px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.empty{font-size:11px;color:var(--tm2);padding:4px 2px}
+
+/* cast button */
+#cast{margin-top:auto;padding:14px;border-radius:8px;font-size:15px;font-weight:700;
+  cursor:pointer;border:none;background:var(--green);color:var(--on);transition:.12s}
+#cast.on{background:var(--db);border:1px solid var(--dbd2);color:var(--dt)}
+
+/* preview */
+#preview{position:relative;aspect-ratio:16/9;background:#05070a;border:1px solid var(--b3);
+  border-radius:8px;overflow:hidden;display:grid;place-items:center}
+#preview .scan{position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(57,229,140,.03) 3px 4px)}
+#preview video{width:100%;height:100%;object-fit:contain;background:#05070a}
+#corner{position:absolute;top:10px;left:10px;font-size:10px;color:var(--tm)}
+#pv-idle{font-size:13px;color:var(--tm2)}
+#pv-live{display:none;flex-direction:column;align-items:center;gap:10px;z-index:2}
+#pv-live .row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green)}
+#pv-stats{font-size:12px;color:var(--tm)}
+
+/* settings cards */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ccard{background:var(--card);border:1px solid var(--b1);border-radius:8px;padding:14px}
+.ccard .label{margin-bottom:12px}
+.chips{display:flex;gap:6px}
+.chip{flex:1;padding:8px 0;text-align:center;font-size:12px;border-radius:6px;cursor:pointer;
+  background:var(--inset);border:1px solid var(--b2);color:var(--ts)}
+.chip.on{background:var(--tint);border:1px solid var(--green);color:var(--green)}
+.togrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.togrow:last-child{margin-bottom:0}
+.togrow span{font-size:13px;color:var(--tp)}
+.pill{width:36px;height:20px;border-radius:20px;background:var(--b2);position:relative;cursor:pointer;transition:.15s}
+.pill .knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#7a8880;transition:.15s}
+.pill.on{background:var(--green)}
+.pill.on .knob{left:18px;background:var(--on)}
+.foot{font-size:11px;color:var(--tm2);line-height:1.5}
+
+/* pairing modal */
+#modal{position:fixed;inset:0;background:rgba(5,7,10,.7);display:none;place-items:center;z-index:50}
+#modal.show{display:grid}
+.mbox{background:var(--panel);border:1px solid var(--b1);border-radius:12px;padding:26px;width:320px;text-align:center}
+.mbox h3{margin:0 0 6px;font-size:17px;color:var(--tp2)}
+.mbox p{margin:0 0 18px;font-size:12px;color:var(--ts)}
+#code{width:100%;text-align:center;letter-spacing:10px;font-size:26px;font-weight:700;
+  background:var(--inset);border:1px solid var(--b2);border-radius:8px;padding:12px;color:var(--green);outline:none}
+#code.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.mbtns{display:flex;gap:8px;margin-top:16px}
+.mbtn{flex:1;padding:11px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--b2);background:var(--inset);color:var(--ts)}
+.mbtn.primary{background:var(--green);border:none;color:var(--on)}
+</style>
+</head>
+<body>
+  <div id="bar">
+    <div class="left">
+      <div id="logo">C</div>
+      <div class="title">CableCast for Windows</div>
+    </div>
+    <div class="btns">
+      <div class="wb" onclick="cc.win('min')">─</div>
+      <div class="wb" onclick="cc.win('max')">▢</div>
+      <div class="wb close" onclick="cc.win('close')">✕</div>
+    </div>
+  </div>
+
+  <div id="body">
+    <!-- LEFT: connection -->
+    <div id="left">
+      <div>
+        <div class="label">Connection</div>
+        <div class="modes">
+          <div class="mode on" id="m-eth" onclick="setMode('ethernet')">⏚ Ethernet / IP</div>
+          <div class="mode" id="m-wifi" onclick="setMode('wifi')">〜 Wi-Fi</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="sub">TV / device IP address</div>
+        <input id="ip" class="mono" spellcheck="false" placeholder="192.168.1.42" value="192.168.1.42">
+        <div id="helper" class="helper mono">This PC: … · detecting…</div>
+        <div id="ip-err" class="err">Device unreachable — check the IP and try again.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="label" style="margin:0">Found on network</div>
+        <div id="devices"><div class="empty" id="dev-empty">Switch to Wi-Fi to auto-discover, or type an IP.</div></div>
+      </div>
+
+      <button id="cast" onclick="toggleCast()">▶ Start casting</button>
+    </div>
+
+    <!-- RIGHT: preview + settings -->
+    <div id="right">
+      <div id="preview">
+        <div class="scan"></div>
+        <div id="corner" class="mono">DISPLAY 1 · —</div>
+        <video id="vid" autoplay muted playsinline style="display:none"></video>
+        <div id="pv-idle">preview — not casting</div>
+        <div id="pv-live">
+          <div class="row"><span class="dot pulse"></span><span class="mono" id="pv-live-t">LIVE — casting</span></div>
+          <div id="pv-stats" class="mono">—</div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="ccard">
+          <div class="label">Quality</div>
+          <div class="chips">
+            <div class="chip" data-q="720p" onclick="setQuality('720p')">720p</div>
+            <div class="chip on" data-q="1080p60" onclick="setQuality('1080p60')">1080p60</div>
+            <div class="chip" data-q="4K30" onclick="setQuality('4K30')">4K30</div>
+          </div>
+        </div>
+        <div class="ccard">
+          <div class="label">Display</div>
+          <div class="chips" id="displays"><div class="chip on">Display 1</div></div>
+        </div>
+        <div class="ccard">
+          <div class="label">Options</div>
+          <div class="togrow"><span>Cast system audio</span><div class="pill on" id="t-audio" onclick="toggleAudio()"><div class="knob"></div></div></div>
+          <div class="togrow"><span>Allow control from TV</span><div class="pill" id="t-ctrl" onclick="toggleControl()"><div class="knob"></div></div></div>
+        </div>
+        <div class="ccard">
+          <div class="label">Status</div>
+          <div class="foot mono" id="status">idle · ready</div>
+        </div>
+      </div>
+
+      <div class="foot mono">Ethernet: type the TV's IP for a direct wired link — no router needed. Wi-Fi: devices auto-appear via mDNS. Streaming uses WebRTC (H.264 + Opus) on port 47800.</div>
+    </div>
+  </div>
+
+  <!-- pairing modal -->
+  <div id="modal">
+    <div class="mbox">
+      <h3>Enter pairing code</h3>
+      <p>Type the 4-digit code shown on your TV.</p>
+      <input id="code" class="mono" maxlength="4" inputmode="numeric" placeholder="0000">
+      <div class="mbtns">
+        <div class="mbtn" onclick="cancelPair()">Cancel</div>
+        <div class="mbtn primary" onclick="submitPair()">Connect</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./signaling.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+name: Build PC Installer
+
+on:
+  push:
+    branches: [main]
+    paths: ['pc/**']
+  pull_request:
+    branches: [main]
+    paths: ['pc/**']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: pc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build installer
+        run: npm run dist
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: cablecast-pc-installer
+          path: pc/dist/CableCast-Setup.exe
