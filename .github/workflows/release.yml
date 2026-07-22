@@ -21,7 +21,7 @@ jobs:
       - name: Install required SDK components
         run: yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_HOME
       - run: chmod +x gradlew
-      - run: ./gradlew assembleRelease --no-daemon
+      - run: ./gradlew assembleRelease --no-daemon --stacktrace
       - uses: actions/upload-artifact@v5
         with:
           name: app-release-unsigned

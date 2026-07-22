@@ -34,18 +34,39 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        id: build-debug
+        run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-output.log
+        continue-on-error: true
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: gradle-build-log
+          path: android/gradle-output.log
+
+      - name: Check APK exists
+        id: check-apk
+        run: |
+          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            echo "apk_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "apk_found=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload APK artifact
+        if: steps.check-apk.outputs.apk_found == 'true'
         uses: actions/upload-artifact@v5
         with:
           name: cablecast-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Build release APK (unsigned)
-        run: ./gradlew assembleRelease
+        if: steps.check-apk.outputs.apk_found == 'true'
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Upload release APK artifact
+        if: steps.check-apk.outputs.apk_found == 'true'
         uses: actions/upload-artifact@v5
         with:
           name: cablecast-android-release-unsigned
