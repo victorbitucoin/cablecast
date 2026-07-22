@@ -41,6 +41,22 @@ jobs:
           exit ${PIPESTATUS[0]}
         continue-on-error: true
 
+      - name: Print build error summary
+        if: always()
+        run: |
+          echo "### Gradle Build Error Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -E -i "(error|fail|exception|cannot|unresolved|unexpected|warning)" gradle-output.log | tail -40 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### Last 100 lines" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -100 gradle-output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          # Also output errors as annotations
+          grep -E -i "(error:)" gradle-output.log | head -10 | while read line; do
+            echo "::error::$line"
+          done
+
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v5
