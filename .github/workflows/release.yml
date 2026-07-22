@@ -18,8 +18,9 @@ jobs:
           java-version: 17
           distribution: temurin
       - uses: android-actions/setup-android@v3
-      - name: Install required SDK components
-        run: yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_HOME
+        with:
+          packages: 'tools platform-tools platforms;android-34 build-tools;34.0.0'
+      - run: echo "sdk.dir=$ANDROID_HOME" > local.properties
       - run: chmod +x gradlew
       - run: ./gradlew assembleRelease --no-daemon --stacktrace
       - uses: actions/upload-artifact@v5

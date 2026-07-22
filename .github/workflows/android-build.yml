@@ -25,10 +25,11 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'tools platform-tools platforms;android-34 build-tools;34.0.0'
 
-      - name: Install required SDK components
-        run: |
-          yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_HOME
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -36,7 +37,7 @@ jobs:
       - name: Build debug APK
         id: build-debug
         run: |
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-output.log
+          ANDROID_HOME=$ANDROID_HOME ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tee gradle-output.log
           exit ${PIPESTATUS[0]}
         continue-on-error: true
 
