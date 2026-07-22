@@ -69,7 +69,8 @@ class RtcSender(
         applyBitrate(sender)
 
         pc!!.createOffer(object : SimpleSdp() {
-            override fun onCreateSuccess(desc: SessionDescription) {
+            override fun onCreateSuccess(desc: SessionDescription?) {
+                if (desc == null) return
                 pc!!.setLocalDescription(SimpleSdp(), desc)
                 onOfferReady(desc.description)
             }

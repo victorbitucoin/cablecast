@@ -59,7 +59,8 @@ class RtcReceiver(
         val offer = SessionDescription(SessionDescription.Type.OFFER, sdp)
         pc?.setRemoteDescription(SimpleSdp(), offer)
         pc?.createAnswer(object : SimpleSdp() {
-            override fun onCreateSuccess(desc: SessionDescription) {
+            override fun onCreateSuccess(desc: SessionDescription?) {
+                if (desc == null) return
                 pc?.setLocalDescription(SimpleSdp(), desc)
                 sendAnswer(desc.description)
             }
@@ -81,7 +82,7 @@ class RtcReceiver(
                     val bytes = (s.members["bytesReceived"] as? Number)?.toLong() ?: 0L
                     val now = s.timestampUs
                     if (lastTs != 0L) bitrate = (bytes - lastBytes) * 8.0 / ((now - lastTs) / 1_000_000.0) / 1e6
-                    lastBytes = bytes; lastTs = now
+                    lastBytes = bytes; lastTs = (now as Number).toLong()
                     w = (s.members["frameWidth"] as? Number)?.toInt() ?: w
                     h = (s.members["frameHeight"] as? Number)?.toInt() ?: h
                 }
