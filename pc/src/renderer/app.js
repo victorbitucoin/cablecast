@@ -117,8 +117,8 @@ window.toggleCast = async () => {
   } catch (e) { return showErr('Screen capture was cancelled.'); }
   pendingStream = stream;
 
-  // local preview
-  const v = $('vid'); v.srcObject = stream; v.style.display = 'block';
+  // minimize to avoid infinite mirror
+  cc.win('min');
 
   session = new CastSession({
     onState: onSessionState,
@@ -137,7 +137,6 @@ function stopCast() {
   session = null;
   state.streaming = false;
   setCastBtn(false);
-  $('vid').style.display = 'none';
   $('pv-idle').style.display = 'block';
   $('pv-live').style.display = 'none';
   $('status').textContent = 'idle · ready';
