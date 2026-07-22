@@ -35,7 +35,23 @@ jobs:
 
       - name: Build debug APK
         id: build-debug
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-output.log
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: gradle-build-log
+          path: android/gradle-output.log
+
+      - name: Check build result
+        if: steps.build-debug.outcome != 'success'
+        run: |
+          echo "Build failed. See gradle-build-log artifact for details."
+          exit 1
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v5
