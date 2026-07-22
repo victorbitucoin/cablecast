@@ -41,21 +41,16 @@ jobs:
           exit ${PIPESTATUS[0]}
         continue-on-error: true
 
-      - name: Print build error summary
+      - name: Print build error annotations
         if: always()
         run: |
-          echo "### Gradle Build Error Summary" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          grep -E -i "(error|fail|exception|cannot|unresolved|unexpected|warning)" gradle-output.log | tail -40 >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "### Last 100 lines" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          tail -100 gradle-output.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          # Also output errors as annotations
-          grep -E -i "(error:)" gradle-output.log | head -10 | while read line; do
-            echo "::error::$line"
+          tail -5 gradle-output.log | while read line; do
+            echo "::error file=build.log,title=Gradle::$(echo $line | head -c 200)"
           done
+          # Also upload to pastebin
+          echo "=== LAST 50 LINES ===" >> /tmp/build-summary.txt
+          tail -50 gradle-output.log >> /tmp/build-summary.txt
+          curl -s --data-binary @/tmp/build-summary.txt https://paste.rs/ 2>&1 || echo "pastebin unavailable"
 
       - name: Upload build log
         if: always()
