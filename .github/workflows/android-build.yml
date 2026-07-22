@@ -44,13 +44,14 @@ jobs:
       - name: Print build error annotations
         if: always()
         run: |
-          tail -5 gradle-output.log | while read line; do
-            echo "::error file=build.log,title=Gradle::$(echo $line | head -c 200)"
+          # Output error annotations - these appear on the workflow run page
+          grep -n -E "(error:|cannot find|cannot access|unresolved reference|: Error|FAILED|Exception|e: )" gradle-output.log | head -40 | while IFS=: read linenum line; do
+            echo "::error file=build.log,line=$linenum,title=Gradle Error::$(echo $line | tr -d '\n' | head -c 200)"
           done
-          # Also upload to pastebin
-          echo "=== LAST 50 LINES ===" >> /tmp/build-summary.txt
-          tail -50 gradle-output.log >> /tmp/build-summary.txt
-          curl -s --data-binary @/tmp/build-summary.txt https://paste.rs/ 2>&1 || echo "pastebin unavailable"
+          # Also output the last lines
+          echo "::group::Last 20 lines"
+          tail -20 gradle-output.log
+          echo "::endgroup::"
 
       - name: Upload build log
         if: always()
